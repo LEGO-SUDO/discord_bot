@@ -3,7 +3,12 @@ import discord
 from discord.ext import commands
 import re
 import requests
+from flask import Flask
 
+# Create a Flask app
+app = Flask(__name__)
+
+# Your bot token
 my_secret = os.environ['BOT_TOKEN']
 
 intents = discord.Intents.default()
@@ -58,4 +63,11 @@ def fetch_joke():
 
 # Add your other bot commands here (if needed).
 
-bot.run(my_secret)
+# Route for the base URL that returns "hello" for GET requests
+@app.route('/')
+def hello():
+    return "hello"
+
+# Run the Flask app and the Discord bot
+if __name__ == '__main__':
+    bot.run(my_secret)
