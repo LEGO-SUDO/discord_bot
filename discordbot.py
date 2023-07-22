@@ -6,7 +6,7 @@ import re
 my_secret = os.environ['BOT_TOKEN']
 
 intents = discord.Intents.default()
-intents.message_content = True
+intents.messages = True
 intents.guilds = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -39,5 +39,7 @@ async def on_message(message):
     await bot.process_commands(message)
 
 # Add your other bot commands here (if needed).
+
+
 
 bot.run(my_secret)
