@@ -22,24 +22,21 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # Check if the message starts with "hey bot"
-    if message.content.lower().startswith("hey bot"):
-        # Get the user's input (remove "hey bot" from the message)
-        user_input = message.content[len("hey bot"):].strip()
+    # Check if the message starts with "hey bot tell me a joke"
+    if message.content.lower().strip() == "hey bot tell me a joke":
+        # Call the joke API to fetch a joke
+        joke = fetch_joke()
 
-        # Call RapidAPI to generate a response based on user input
-        response = generate_rapidapi_response(user_input)
+        # Send the joke as a message
+        await message.channel.send(f"{message.author.mention}, {joke}")
 
-        # Send the response as a message
-        await message.channel.send(f"{message.author.mention}, {response}")
-
-
+        # Do not process other commands when a joke is sent
         return
 
     # Check if the message contains any link
     if re.search(r"http[s]?://\S+", message.content):
-        # TODO checks for malicious URLs or links leading to other servers.
-        # check for server invites.
+        # Here, you can add your own checks for malicious URLs or links leading to other servers.
+        # For simplicity, we'll just check for server invites.
         if "discord.gg/" in message.content:
             # Delete the message if it contains a server invite
             await message.delete()
@@ -48,21 +45,17 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-def generate_rapidapi_response(user_input):
+def fetch_joke():
     try:
-        url = "https://aeona3.p.rapidapi.com/"
-        querystring = {"text": user_input, "userId": "12312312312"}  # Update the userId as needed
-        headers = {
-            "X-RapidAPI-Key": os.environ["RAPIDAPI_KEY"],
-            "X-RapidAPI-Host": "aeona3.p.rapidapi.com"
-        }
-        response = requests.get(url, headers=headers, params=querystring)
+        response = requests.get("https://official-joke-api.appspot.com/jokes/random")
         if response.status_code == 200:
-            return response.json().get('response', 'No response from API')
+            joke_data = response.json()
+            joke = f"{joke_data['setup']}\n{joke_data['punchline']}"
+            return joke
     except Exception as e:
-        print(f"Error while generating RapidAPI response: {e}")
-    return "Sorry, I couldn't generate a response at the moment."
+        print(f"Error while fetching joke: {e}")
+    return "Sorry, I couldn't fetch a joke at the moment."
 
-
+# Add your other bot commands here (if needed).
 
 bot.run(my_secret)
