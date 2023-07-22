@@ -2,10 +2,9 @@ import os
 import discord
 from discord.ext import commands
 import re
-import openai
+import requests
 
 my_secret = os.environ['BOT_TOKEN']
-openai.api_key = os.environ['YOUR_OPENAI_API_KEY']
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -28,19 +27,19 @@ async def on_message(message):
         # Get the user's input (remove "hey bot" from the message)
         user_input = message.content[len("hey bot"):].strip()
 
-        # Call OpenAI API to generate a response based on user input
-        response = generate_openai_response(user_input)
+        # Call RapidAPI to generate a response based on user input
+        response = generate_rapidapi_response(user_input)
 
         # Send the response as a message
         await message.channel.send(f"{message.author.mention}, {response}")
 
-        # Do not process other commands when a response is sent
+
         return
 
     # Check if the message contains any link
     if re.search(r"http[s]?://\S+", message.content):
-        # Here, you can add your own checks for malicious URLs or links leading to other servers.
-        # For simplicity, we'll just check for server invites.
+        # TODO checks for malicious URLs or links leading to other servers.
+        # check for server invites.
         if "discord.gg/" in message.content:
             # Delete the message if it contains a server invite
             await message.delete()
@@ -49,18 +48,21 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-def generate_openai_response(user_input):
+def generate_rapidapi_response(user_input):
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-002",  # Use the engine you want (e.g., "text-davinci-001" or "text-davinci-002")
-            prompt=user_input,
-            max_tokens=150  # You can adjust this to control the length of the response
-        )
-        return response['choices'][0]['text'].strip()
+        url = "https://aeona3.p.rapidapi.com/"
+        querystring = {"text": user_input, "userId": "12312312312"}  # Update the userId as needed
+        headers = {
+            "X-RapidAPI-Key": os.environ["RAPIDAPI_KEY"],
+            "X-RapidAPI-Host": "aeona3.p.rapidapi.com"
+        }
+        response = requests.get(url, headers=headers, params=querystring)
+        if response.status_code == 200:
+            return response.json().get('response', 'No response from API')
     except Exception as e:
-        print(f"Error while generating OpenAI response: {e}")
+        print(f"Error while generating RapidAPI response: {e}")
     return "Sorry, I couldn't generate a response at the moment."
 
-# Add your other bot commands here (if needed).
+
 
 bot.run(my_secret)
